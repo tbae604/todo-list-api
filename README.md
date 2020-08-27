@@ -11,7 +11,7 @@ FastAPI and MariaDB implementation of a simple todo list. Each todo list item ca
 
 ## Setup
 
-### Sample database
+### Install sample database
 
 TODO
 
@@ -22,20 +22,29 @@ Check out this repo then create a Python virtual environment at the project root
 ```py -m venv .\venv```
 
 Activate the venv, also at the project root:
+
 ```.\venv\Scripts\activate.bat```
 
-Install FastAPI and uvicorn into the venv:
+Install these libraries into the venv:
 ```
 .\venv\Scripts\pip.exe install fastapi
 .\venv\Scripts\pip.exe install uvicorn
+.\venv\Scripts\pip.exe install mariadb
 ```
-
 
 ## To run locally
 
+Ensure MariaDB is running on http://127.0.0.1:3306.
+
 Run the FastAPI main.py on http://127.0.0.1:8000 from the project root:
+
 ```.\venv\Scripts\uvicorn.exe main:app --reload```
 
-Try the following queries in Postman:
-* http://127.0.0.1:8000
-* http://127.0.0.1:8000/items/5?q=somequery
+For documentation and sandbox for all available queries while the API is running, go to http://127.0.0.1:8000/docs.
+
+Here are some example queries you can try on the sample database using curl or Postman:
+
+| Action                          | Use                                         |
+| ------------------------------- | ------------------------------------------- |
+| Read all sample todo list items | curl -X GET "http://127.0.0.1:8000/items" -H  "accept: application/json" |
+| Read item with item_id          | curl -X GET "http://127.0.0.1:8000/items/4blgmhwua6trr45vyxdz" -H  "accept: application/json" |
