@@ -7,7 +7,6 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, status
 import mariadb
-from pydantic import BaseModel
 
 
 # Setup ===============================================

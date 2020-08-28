@@ -28,18 +28,18 @@ Venue
     └-- Pay final invoice  
 Food
 └-- Appetizers
-    └-- Research catering companies
-    └-- Book catering company 
-    └-- Pay catering company
-        └-- Pay deposit 
-        └-- Pay final invoice 
+|   └-- Research catering companies
+|   └-- Book catering company 
+|   └-- Pay catering company
+|       └-- Pay deposit 
+|       └-- Pay final invoice 
 └-- Cake
     └-- Research bakers 
     └-- Order from baker 
     └-- Pay final invoice
 ```
 
-...represented in the todo_item table:
+...represented in the todo_item table. Note that none of these items are "complete":
 
 ```
 +---------+-----------------------------+----------+-----------+
@@ -100,7 +100,7 @@ Here are some example queries you can try on the sample database using curl or P
 | Create new item with name "Test" and parent item whose id is 1 | curl -X POST "http://127.0.0.1:8000/items?name=Test&parent_id=1" -H  "accept: application/json" -d "" |
 | Read all items | curl -X GET "http://127.0.0.1:8000/items" -H  "accept: application/json" |
 | Read item with item_id 4         | curl -X GET "http://127.0.0.1:8000/items/4" -H  "accept: application/json" |
-| Read immediate parent of item_id 22 | curl -X GET "http://127.0.0.1:8000/items/22/parents?immediate_only=true" -H  "accept: application/json" |
+| Read only immediate parent of item_id 22 | curl -X GET "http://127.0.0.1:8000/items/22/parents?immediate_only=true" -H  "accept: application/json" |
 | Read complete chain of parents of item_id 22 | curl -X GET "http://127.0.0.1:8000/items/22/parents?immediate_only=false" -H  "accept: application/json" |
 | Update item with item_id 4 to be marked complete | curl -X PUT "http://127.0.0.1:8000/items/4?complete=true" -H  "accept: application/json" |
 | Update item with item_id 4 to have name "Updated" and parent item whose id is 1 | curl -X PUT "http://127.0.0.1:8000/items/4?name=Updated&parent_id=1" -H  "accept: application/json" |
