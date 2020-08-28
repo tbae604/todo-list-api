@@ -1,5 +1,5 @@
 """
-FastAPI and MariaDB implementation of a simple todo list. Each todo list item can have one parent list item, while each item can have many children. Items can be created, edited, checked as complete, and deleted. Item parents (immediate to root) can also be queried. See README for more information.
+FastAPI and MariaDB implementation of a simple todo list. Each todo list item can have one parent list item, while each item can have many children. Items can be created, edited, checked as complete, and deleted. Item parents (immediate only OR to the root) can also be queried. See README for more information.
 """
 
 import sys
@@ -14,8 +14,8 @@ from pydantic import BaseModel
 
 try:
     conn = mariadb.connect(
-        user="root",         # TODO: Change if user is not "root"
-        password="root",     # TODO: Change if password is not "root"
+        user="root",         # !!! TODO: Change if user is not "root"
+        password="root",     # !!! TODO: Change if password is not "root"
         host="127.0.0.1",
         port=3306,
         database="todo_list"
