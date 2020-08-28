@@ -5,7 +5,7 @@ FastAPI and MariaDB implementation of a simple todo list. Each todo list item ca
 import sys
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 import mariadb
 from pydantic import BaseModel
 
@@ -204,18 +204,23 @@ def update_item(item_id: str, name: Optional[str] = None, complete: Optional[boo
     return read_item(item_id)
 
 
-@app.delete("/items/{item_id}")
+@app.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item(item_id: str):
     """
-    TODO
-
     Deletes existing Todo list item by its item_id. Returns HTTPException if nothing with that item_id found.
 
     \f
     :param item_id: ID of existing item
     :type item_id: str
-    :return: TODO
-    :rtype: TODO
     :raises: HTTPException
     """
-    return {"item_id": item_id, "name": "test", "complete": False}
+    try:
+        read_item(item_id)
+    except HTTPException:
+        raise HTTPException(
+            status_code=404,
+            detail="Could not find item with id {0}; "
+                "maybe it doesn't exist?".format(item_id)
+        )
+    cur.execute("DELETE FROM todo_item WHERE item_id = ?", (item_id,))
+    conn.commit()
