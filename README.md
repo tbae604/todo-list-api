@@ -6,7 +6,7 @@ FastAPI and MariaDB implementation of a simple todo list. Each todo list item ca
 
 * Windows 10 with Powershell
 * Python 3.6+
-* MariaDB
+* MariaDB installed with user and password as "root", else see `main.py` TODOs
 * Postman
 
 ## Setup
@@ -46,5 +46,5 @@ Here are some example queries you can try on the sample database using curl or P
 
 | Action                          | Use                                         |
 | ------------------------------- | ------------------------------------------- |
-| Read all sample todo list items | curl -X GET "http://127.0.0.1:8000/items" -H  "accept: application/json" |
-| Read item with item_id          | curl -X GET "http://127.0.0.1:8000/items/4blgmhwua6trr45vyxdz" -H  "accept: application/json" |
+| Read all items | curl -X GET "http://127.0.0.1:8000/items" -H  "accept: application/json" |
+| Read item with item_id 4         | curl -X GET "http://127.0.0.1:8000/items/4" -H  "accept: application/json" |

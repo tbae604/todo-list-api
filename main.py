@@ -14,8 +14,8 @@ from pydantic import BaseModel
 
 try:
     conn = mariadb.connect(
-        user="root",
-        password="root",
+        user="root",         # TODO: Change if user is not "root"
+        password="root",     # TODO: Change if password is not "root"
         host="127.0.0.1",
         port=3306,
         database="todo_list"
@@ -29,14 +29,14 @@ cur = conn.cursor()
 app = FastAPI()
 
 
-class TodoItem(BaseModel):
-    """
-    TODO: Not currently used
-    """
-    item_id: str
-    name: str
-    complete: Optional[bool] = None
-    parent_id: Optional[str] = None
+# class TodoItem(BaseModel):
+#     """
+#     TODO: Not currently used
+#     """
+#     item_id: str
+#     name: str
+#     complete: Optional[bool] = None
+#     parent_id: Optional[str] = None
 
 
 # Routes ==============================================
@@ -67,7 +67,7 @@ def read_all_items():
 @app.get("/items/{item_id}")
 def read_item(item_id: str):
     """
-    Reads existing Todo list item by its item_id. Returns HTTPException if nothing with that item_id found. Assumes all item_id are unique.
+    Reads existing Todo list item by its item_id. Returns HTTPException if nothing with that item_id found.
 
     \f
     :param item_id: ID of existing item
@@ -97,7 +97,7 @@ def read_item_parents(item_id: str, immediate_only: Optional[bool] = True):
     """
     TODO
 
-    Reads the immediate parent OR all parents, grandparents, etc of an item. Returns HTTPException if nothing with that item_id found. Assumes all item_id are unique.
+    Reads the immediate parent OR all parents, grandparents, etc of an item. Returns HTTPException if nothing with that item_id found.
 
     \f
     :param item_id: ID of existing item
@@ -114,9 +114,7 @@ def read_item_parents(item_id: str, immediate_only: Optional[bool] = True):
 @app.post("/items")
 def create_item(name: str, complete: Optional[bool] = False, parent_id: Optional[str] = None):
     """
-    TODO
-
-    Create a new todo list item. Must have a name. Default for 'complete' status is False. Parent item ID optional.
+    Create a new todo list item. Must have a name. Default for 'complete' status is False. Parent item ID optional. Returns HTTPException if parent_id provided but parent does not exist.
 
     \f
     :param name: Name describing the item
@@ -125,19 +123,32 @@ def create_item(name: str, complete: Optional[bool] = False, parent_id: Optional
     :type complete: bool
     :param parent_id: ID of an existing item to be new item's immediate parent
     :type parent_id: str
-    :return: object containing nested items
+    :return: object representing the new item
     :rtype: dict
-    :raises: TODO
+    :raises: HTTPException
     """
-    return {"item_id": item_id, "name": "test", "complete": False}
+    if parent_id:
+        try:
+            read_item(parent_id)
+        except HTTPException:
+            raise HTTPException(
+                status_code=404,
+                detail="Could not fetch parent item with id {0}; "
+                    "maybe it doesn't exist?".format(parent_id)
+            )
+    
+    cur.execute("INSERT INTO todo_item (name, complete, parent_id) VALUES (?, ?, ?)",
+        (name, complete, parent_id,)
+    )
+    item_id = cur.lastrowid
+    conn.commit()
+    return read_item(item_id)
 
 
 @app.put("/items/{item_id}")
 def update_item(item_id: str, name: Optional[str] = None, complete: Optional[bool] = None, parent_id: Optional[str] = None):
     """
-    TODO
-
-    Update at least one of an existing item's name, completion, or parent. Returns HTTPException if nothing with that item_id found or if no values are provided. Assumes all item_id are unique.
+    Update at least one of an existing item's name, completion, or parent. Returns HTTPException if no values are provided, if item with given item_id does not exist, or if parent_id provided but parent does not exist.
 
     \f
     :param item_id: ID of an existing item to update
@@ -148,11 +159,49 @@ def update_item(item_id: str, name: Optional[str] = None, complete: Optional[boo
     :type complete: bool
     :param parent_id: ID of an existing item to be the item's immediate parent
     :type parent_id: str
-    :return: object containing nested items
+    :return: object representing the updated item
     :rtype: dict
     :raises: HTTPException
     """
-    return {"item_id": item_id, "name": name, "parent_id": parent_id, "complete": complete}
+    if name == None and parent_id == None and complete == None:
+        raise HTTPException(
+            status_code=400,
+            detail="Please provide at least one of name, complete, parent_id values to update."
+        )
+
+    try:
+        read_item(item_id)
+    except HTTPException:
+        raise HTTPException(
+            status_code=404,
+            detail="Could not fetch item with id {0}; "
+                "maybe it doesn't exist?".format(parent_id)
+        )
+
+    if parent_id:
+        try:
+            read_item(parent_id)
+        except HTTPException:
+            raise HTTPException(
+                status_code=404,
+                detail="Could not fetch parent item with id {0}; "
+                    "maybe it doesn't exist?".format(parent_id)
+            )
+
+    # Build query with new values
+    new_values = {}
+    for v in ('name', 'parent_id', 'complete'):
+        value = locals()[v]
+        if value != None:
+            new_values[v] = value
+
+    update_query = "UPDATE todo_item set {0} where item_id={1}".format(
+        ', '.join('%s=%r' % x for x in new_values.items()),
+        item_id,
+    )
+    cur.execute(update_query)
+    conn.commit()
+    return read_item(item_id)
 
 
 @app.delete("/items/{item_id}")
@@ -160,7 +209,7 @@ def delete_item(item_id: str):
     """
     TODO
 
-    Deletes existing Todo list item by its item_id. Returns HTTPException if nothing with that item_id found. Assumes all item_id are unique.
+    Deletes existing Todo list item by its item_id. Returns HTTPException if nothing with that item_id found.
 
     \f
     :param item_id: ID of existing item
