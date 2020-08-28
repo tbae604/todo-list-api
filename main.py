@@ -29,16 +29,6 @@ cur = conn.cursor()
 app = FastAPI()
 
 
-# class TodoItem(BaseModel):
-#     """
-#     TODO: Not currently used
-#     """
-#     item_id: str
-#     name: str
-#     complete: Optional[bool] = None
-#     parent_id: Optional[str] = None
-
-
 # Routes ==============================================
 
 @app.get("/items")
@@ -95,20 +85,32 @@ def read_item(item_id: str):
 @app.get("/items/{item_id}/parents")
 def read_item_parents(item_id: str, immediate_only: Optional[bool] = True):
     """
-    TODO
-
-    Reads the immediate parent OR all parents, grandparents, etc of an item. Returns HTTPException if nothing with that item_id found.
+    Reads the immediate parent OR all parents, grandparents, etc of an item. Returns HTTPException if nothing with that item_id found. If no parent(s), an empty list is returned.
 
     \f
     :param item_id: ID of existing item
     :type item_id: str
     :param immediate_only: If True, return only the immediate parent else all of them.
     :type item_id: bool
-    :return: object containing nested items
+    :return: object representing parent(s) requested
     :rtype: dict
     :raises: HTTPException
     """
-    return {"item_id": item_id, "name": "test", "complete": False}
+    item = read_item(item_id)
+    parents = []
+    current_parent_id = item["parent_id"]
+
+    if immediate_only:
+        if current_parent_id:
+            parent = read_item(current_parent_id)
+            parents.append(parent)
+        return {"parents": parents}   
+
+    while current_parent_id:
+        parent = read_item(current_parent_id)
+        parents.append(parent)
+        current_parent_id = parent["parent_id"]
+    return {"parents": parents}
 
 
 @app.post("/items")
